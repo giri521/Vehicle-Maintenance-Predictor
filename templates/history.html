@@ -189,6 +189,12 @@
             font-size: 0.9rem;
         }
         
+        /* New Status Styles for detailed color coding */
+        .status-good { color: #2ecc71; }
+        .status-soon { color: #f1c40f; }
+        .status-immediate-try { color: #ff8c00; }
+        .status-immediate { color: #e74c3c; font-weight: bold; }
+        
         footer {
             text-align: center;
             margin-top: 40px;
@@ -247,7 +253,7 @@
             <div class="stat-card">
                 <div class="stat-label">Maintenance Alerts</div>
                 <div class="stat-value">
-                    {{ history_data|selectattr("result", "equalto", "🔴 Maintenance Required Soon!")|list|length }}
+                    {{ history_data|selectattr("maintenance_status", "in", "Required")|list|length }}
                 </div>
             </div>
         </div>
@@ -291,13 +297,25 @@
                                 {{ row.overall_risk }}%
                             </div>
                         </td>
+                        
                         <td>
-                            {% if "Maintenance Required" in row.result %}
-                            <span style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Required</span>
-                            {% else %}
-                            <span style="color: #2ecc71;"><i class="fas fa-check-circle"></i> Good</span>
-                            {% endif %}
+                            {% set status = row.maintenance_status %}
+                            <span class="
+                                {% if 'IMMEDIATE Required' in status %}status-immediate
+                                {% elif 'Try Immediate Required' in status %}status-immediate-try
+                                {% elif 'Required Soon' in status %}status-soon
+                                {% else %}status-good{% endif %}">
+                                
+                                <i class="fas 
+                                    {% if 'IMMEDIATE Required' in status %}fa-biohazard
+                                    {% elif 'Try Immediate Required' in status %}fa-exclamation-triangle
+                                    {% elif 'Required Soon' in status %}fa-clock
+                                    {% else %}fa-check-circle{% endif %}"></i>
+                                
+                                {{ status }}
+                            </span>
                         </td>
+                        
                         <td>{{ row['Engine Temperature (°C)'] }}</td>
                         <td>{{ row['Oil Pressure (bar)'] }}</td>
                         <td>{{ row['Vibration Level (Hz)'] }}</td>
