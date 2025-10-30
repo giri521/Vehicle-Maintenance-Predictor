@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Maintenance System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(rgba(15, 20, 30, 0.9), rgba(10, 15, 25, 0.95)), 
+                        url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(25, 30, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #4dabf7;
+        }
+        
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-btn {
+            background: rgba(40, 45, 60, 0.8);
+            border: 1px solid rgba(100, 130, 180, 0.4);
+            color: #a0c8f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(52, 152, 219, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.4rem;
+            margin-bottom: 40px;
+            color: #a0c8f0;
+            max-width: 700px;
+            line-height: 1.6;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto 60px;
+            padding: 0 20px;
+        }
+        
+        .feature-card {
+            background: rgba(25, 30, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: #4dabf7;
+            margin-bottom: 20px;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        
+        .feature-desc {
+            color: #b0c4de;
+            line-height: 1.6;
+        }
+        
+        .auth-container {
+            background: rgba(25, 30, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 420px;
+            margin: 0 auto 60px;
+        }
+        
+        .form-title {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: #fff;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(30, 35, 50, 0.7);
+            border: 1px solid rgba(100, 130, 180, 0.4);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.3);
+            background: rgba(40, 45, 60, 0.8);
+        }
+        
+        input::placeholder {
+            color: #a0b8d0;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #3498db, #2c76c9);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #2c76c9, #1e5aa7);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        .toggle {
+            margin-top: 20px;
+            text-align: center;
+            color: #a0c8f0;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .toggle:hover {
+            color: #4dabf7;
+        }
+        
+        .form-box { 
+            display: none; 
+        }
+        
+        .form-box.active { 
+            display: block; 
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #a0b8d0;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                padding: 15px 20px;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .auth-container {
+                width: 90%;
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-toolbox logo-icon"></i>
+            <div class="logo-text">AutoCare Pro</div>
+        </div>
+        <div class="nav-buttons">
+            <a href="#features" class="nav-btn">
+                <i class="fas fa-star"></i> Features
+            </a>
+            <a href="#about" class="nav-btn">
+                <i class="fas fa-info-circle"></i> About
+            </a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1 class="hero-title">Smart Vehicle Maintenance Predictor</h1>
+        <p class="hero-subtitle">Predict maintenance needs before they become problems. Our AI-powered system analyzes your vehicle's health and provides actionable insights to keep you safely on the road.</p>
+        
+        <div class="features" id="features">
+            <div class="feature-card">
+                <i class="fas fa-brain feature-icon"></i>
+                <h3 class="feature-title">AI-Powered Analysis</h3>
+                <p class="feature-desc">Advanced machine learning algorithms analyze your vehicle data to predict maintenance needs accurately.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-chart-line feature-icon"></i>
+                <h3 class="feature-title">Risk Assessment</h3>
+                <p class="feature-desc">Get detailed risk analysis for different vehicle systems with color-coded urgency indicators.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-history feature-icon"></i>
+                <h3 class="feature-title">Maintenance History</h3>
+                <p class="feature-desc">Track your vehicle's maintenance history and monitor performance trends over time.</p>
+            </div>
+        </div>
+        
+        <div class="auth-container">
+            <h2 class="form-title" id="form-title">Login to Your Account</h2>
+
+            <!-- LOGIN FORM -->
+            <form id="login-form" class="form-box active" method="POST" action="/login">
+                <div class="form-group">
+                    <input type="text" name="vehicle_number" placeholder="Vehicle Number (e.g., TN10AB5678)" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="submit-btn">Login to Dashboard</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="register-form" class="form-box" method="POST" action="/register">
+                <div class="form-group">
+                    <input type="text" name="owner_name" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="vehicle_number" placeholder="Vehicle Number (e.g., TN10AB5678)" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="submit-btn">Create Account</button>
+            </form>
+
+            <div class="toggle" onclick="toggleForm()" id="toggle-text">Don't have an account? Register Now</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Vehicle Maintenance System &copy; 2023 | <span style="color: #4dabf7;">Keep your vehicle in peak condition</span></p>
+    </footer>
+
+    <script>
+        const toggle = document.getElementById('toggle-text');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const title = document.getElementById('form-title');
+
+        function toggleForm() {
+            if (loginForm.classList.contains('active')) {
+                loginForm.classList.remove('active');
+                registerForm.classList.add('active');
+                title.textContent = 'Create New Account';
+                toggle.textContent = 'Already have an account? Login';
+            } else {
+                registerForm.classList.remove('active');
+                loginForm.classList.add('active');
+                title.textContent = 'Login to Your Account';
+                toggle.textContent = "Don't have an account? Register Now";
+            }
+        }
+    </script>
+
+</body>
+</html>
