@@ -1,517 +1,542 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Vehicle Maintenance Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body {
-      background: linear-gradient(rgba(15, 20, 30, 0.9), rgba(10, 15, 25, 0.95)), 
-                  url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      color: #e0e0e0;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    header {
-      text-align: center;
-      padding: 20px 0 30px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      margin-bottom: 30px;
-    }
-    
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      color: #fff;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    }
-    
-    h2 {
-      font-size: 1.8rem;
-      margin: 25px 0 15px;
-      color: #4dabf7;
-    }
-    
-    h3 {
-      font-size: 1.4rem;
-      margin: 15px 0;
-      color: #b0c4de;
-    }
-    
-    .tagline {
-      font-size: 1.1rem;
-      color: #a0c8f0;
-      margin-bottom: 15px;
-    }
-    
-    .dashboard {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 25px;
-      margin-bottom: 30px;
-    }
-    
-    @media (max-width: 900px) {
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    .card {
-      background: rgba(25, 30, 45, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 25px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .card-title {
-      font-size: 1.4rem;
-      margin-bottom: 20px;
-      color: #4dabf7;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .risk-indicator {
-      text-align: center;
-      padding: 20px;
-      background: rgba(40, 45, 60, 0.7);
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
-    
-    .risk-value {
-      font-size: 3.5rem;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-    
-    .risk-status {
-      font-size: 1.3rem;
-      font-weight: 600;
-      padding: 8px 20px;
-      border-radius: 20px;
-      display: inline-block;
-    }
-    
-    .chart-container {
-      height: 300px;
-      position: relative;
-    }
-    
-    .details-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    
-    .details-table th, .details-table td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .details-table th {
-      color: #b0c4de;
-      font-weight: 600;
-      width: 40%;
-    }
-    
-    .details-table td {
-      color: #fff;
-      font-weight: 500;
-    }
-    
-    .analysis-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    
-    .analysis-table th, .analysis-table td {
-      padding: 12px 15px;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .analysis-table th {
-      color: #b0c4de;
-      font-weight: 600;
-    }
-    
-    .risk-bar-container {
-      height: 12px;
-      background: rgba(60, 70, 90, 0.7);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    
-    .risk-bar {
-      height: 12px;
-      border-radius: 10px;
-      transition: width 0.5s ease;
-    }
-    
-    .observation {
-      font-size: 0.9rem;
-      color: #c0d0e0;
-    }
-    
-    .service-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    
-    .service-immediate {
-      background: rgba(231, 76, 60, 0.2);
-      color: #e74c3c;
-      border: 1px solid rgba(231, 76, 60, 0.4);
-    }
-    
-    .service-needed {
-      background: rgba(241, 196, 15, 0.2);
-      color: #f1c40f;
-      border: 1px solid rgba(241, 196, 15, 0.4);
-    }
-    
-    .service-ok {
-      background: rgba(46, 204, 113, 0.2);
-      color: #2ecc71;
-      border: 1px solid rgba(46, 204, 113, 0.4);
-    }
-    
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-    
-    .service-card {
-      background: rgba(35, 40, 55, 0.8);
-      border-radius: 12px;
-      padding: 20px;
-      border-left: 4px solid;
-    }
-    
-    .service-card.immediate {
-      border-left-color: #e74c3c;
-    }
-    
-    .service-card.needed {
-      border-left-color: #f1c40f;
-    }
-    
-    .service-card.ok {
-      border-left-color: #2ecc71;
-    }
-    
-    .service-header {
-      display: flex;
-      justify-content: between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    
-    .service-name {
-      font-weight: 600;
-      color: #fff;
-      font-size: 1.1rem;
-    }
-    
-    .service-details {
-      color: #b0c4de;
-      font-size: 0.9rem;
-      line-height: 1.4;
-    }
-    
-    .garage-tools {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 30px;
-      flex-wrap: wrap;
-    }
-    
-    .btn {
-      background: rgba(40, 45, 60, 0.8);
-      border: 1px solid rgba(100, 130, 180, 0.4);
-      color: #a0c8f0;
-      padding: 12px 25px;
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    
-    .btn:hover {
-      background: rgba(52, 152, 219, 0.3);
-      transform: translateY(-2px);
-    }
-    
-    footer {
-      text-align: center;
-      margin-top: 40px;
-      padding: 20px;
-      color: #a0b8d0;
-      font-size: 0.9rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .highlight {
-      color: #4dabf7;
-      font-weight: 600;
-    }
-    
-    .garage-icon {
-      color: #4dabf7;
-      font-size: 1.8rem;
-      margin-right: 10px;
-    }
-    
-    .result-message {
-      font-size: 1.5rem;
-      margin: 15px 0;
-      padding: 15px;
-      border-radius: 10px;
-      background: rgba(40, 45, 60, 0.7);
-      text-align: center;
-    }
-    
-    .priority-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-left: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Vehicle Maintenance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(rgba(15, 20, 30, 0.9), rgba(10, 15, 25, 0.95)), 
+                        url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin: 25px 0 15px;
+            color: #4dabf7;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            margin: 15px 0;
+            color: #b0c4de;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            color: #a0c8f0;
+            margin-bottom: 15px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: rgba(25, 30, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #4dabf7;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .risk-indicator {
+            text-align: center;
+            padding: 20px;
+            background: rgba(40, 45, 60, 0.7);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .risk-value {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .risk-status {
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .details-table th, .details-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .details-table th {
+            color: #b0c4de;
+            font-weight: 600;
+            width: 40%;
+        }
+        
+        .details-table td {
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .analysis-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .analysis-table th, .analysis-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .analysis-table th {
+            color: #b0c4de;
+            font-weight: 600;
+        }
+        
+        .risk-bar-container {
+            height: 12px;
+            background: rgba(60, 70, 90, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .risk-bar {
+            height: 12px;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .observation {
+            font-size: 0.9rem;
+            color: #c0d0e0;
+        }
+        
+        .service-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Using color codes for consistency with history.html */
+        .status-immediate {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.4);
+        }
+        
+        .status-needed {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.4);
+        }
+        
+        .status-ok {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .service-card {
+            background: rgba(35, 40, 55, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid;
+        }
+        
+        .service-card.immediate {
+            border-left-color: #e74c3c;
+        }
+        
+        .service-card.needed {
+            border-left-color: #f1c40f;
+        }
+        
+        .service-card.ok {
+            border-left-color: #2ecc71;
+        }
+        
+        .service-header {
+            display: flex;
+            justify-content: space-between; /* Fix to align items properly */
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .service-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+        
+        .service-details {
+            color: #b0c4de;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .garage-tools {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: rgba(40, 45, 60, 0.8);
+            border: 1px solid rgba(100, 130, 180, 0.4);
+            color: #a0c8f0;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background: rgba(52, 152, 219, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .highlight {
+            color: #4dabf7;
+            font-weight: 600;
+        }
+        
+        .garage-icon {
+            color: #4dabf7;
+            font-size: 1.8rem;
+            margin-right: 10px;
+        }
+        
+        .result-message {
+            font-size: 1.5rem;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(40, 45, 60, 0.7);
+            text-align: center;
+        }
+        
+        .priority-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1><i class="fas fa-toolbox garage-icon"></i> Vehicle Maintenance Dashboard</h1>
-      <p class="tagline">Complete diagnostic analysis of your vehicle's health</p>
-    </header>
-    
-    <div class="result-message" style="color: {% if 'No Immediate' in result %}#2ecc71{% else %}#e74c3c{% endif %};">
-      <i class="fas {% if 'No Immediate' in result %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i> {{ result }}
-    </div>
-    
-    <h3>Overall Vehicle Risk: {{ overall_risk }}%</h3>
-    
-    <div class="dashboard">
-      <div class="card">
-        <h2 class="card-title"><i class="fas fa-chart-pie"></i> Risk Distribution</h2>
-        <div class="chart-container">
-          <canvas id="riskChart"></canvas>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-toolbox garage-icon"></i> Vehicle Maintenance Dashboard</h1>
+            <p class="tagline">Complete diagnostic analysis of your vehicle's health</p>
+        </header>
+        
+        {% set status = maintenance_status %}
+        <div class="result-message" style="color: 
+            {% if 'IMMEDIATE' in status %}#e74c3c
+            {% elif 'Try Immediate' in status %}#ff8c00 
+            {% elif 'Required Soon' in status %}#f1c40f
+            {% else %}#2ecc71{% endif %};">
+            <i class="fas 
+                {% if 'IMMEDIATE' in status %}fa-biohazard
+                {% elif 'Try Immediate' in status %}fa-exclamation-triangle
+                {% elif 'Required Soon' in status %}fa-clock
+                {% else %}fa-check-circle{% endif %}"></i> 
+            
+            {{ status }}
         </div>
-      </div>
-      
-      <div class="card">
-        <h2 class="card-title"><i class="fas fa-car"></i> Vehicle Details</h2>
-        <table class="details-table">
-          {% for key, value in data.items() %}
-          <tr>
-            <th>{{ key }}</th>
-            <td>{{ value }}</td>
-          </tr>
-          {% endfor %}
-        </table>
-      </div>
-    </div>
-    
-    <div class="card">
-      <h2 class="card-title"><i class="fas fa-clipboard-list"></i> Section-wise Analysis</h2>
-      <table class="analysis-table">
-        <thead>
-          <tr>
-            <th>Section</th>
-            <th>Risk %</th>
-            <th>Risk Level</th>
-            <th>Observation</th>
-            <th>Service Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for sec, risk in section_risk.items() %}
-          <tr>
-            <td>{{ sec }}</td>
-            <td>{{ "%.1f"|format(risk) }}%</td>
-            <td>
-              <div class="risk-bar-container">
-                <div class="risk-bar" style="width: {{ risk }}%; background:
-                  {% if risk > 75 %}#e74c3c
-                  {% elif risk > 50 %}#f1c40f
-                  {% else %}#2ecc71
-                  {% endif %};"></div>
-              </div>
-            </td>
-            <td class="observation">{{ reasons[sec] }}</td>
-            <td>
-              <div class="service-status 
-                {% if risk > 75 %}service-immediate
-                {% elif risk > 50 %}service-needed
-                {% else %}service-ok{% endif %}">
-                <i class="fas 
-                  {% if risk > 75 %}fa-exclamation-circle
-                  {% elif risk > 50 %}fa-clock
-                  {% else %}fa-check-circle{% endif %}"></i>
-                {% if risk > 75 %}Immediate
-                {% elif risk > 50 %}Soon
-                {% else %}No Need{% endif %}
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Service Recommendations Section -->
-    <div class="card">
-      <h2 class="card-title"><i class="fas fa-tools"></i> Recommended Services</h2>
-      <div class="services-grid">
-        {% for sec, risk in section_risk.items() %}
-        <div class="service-card 
-          {% if risk > 75 %}immediate
-          {% elif risk > 50 %}needed
-          {% else %}ok{% endif %}">
-          <div class="service-header">
-            <div class="service-name">{{ sec }} System</div>
-            <div class="priority-badge 
-              {% if risk > 75 %}service-immediate
-              {% elif risk > 50 %}service-needed
-              {% else %}service-ok{% endif %}">
-              <i class="fas 
-                {% if risk > 75 %}fa-fire
-                {% elif risk > 50 %}fa-clock
-                {% else %}fa-check{% endif %}"></i>
-              {% if risk > 75 %}URGENT
-              {% elif risk > 50 %}NEEDED
-              {% else %}OK{% endif %}
+        
+        <h3>Overall Vehicle Risk: {{ overall_risk }}%</h3>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-chart-pie"></i> Risk Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
             </div>
-          </div>
-          <div class="service-details">
-            <strong>Recommended Services:</strong><br>
-            {{ services[sec] }}
-          </div>
-          <div style="margin-top: 10px; font-size: 0.85rem; color: #a0c8f0;">
-            <i class="fas fa-info-circle"></i>
-            {% if risk > 75 %}
-            <strong>Service Required:</strong> Immediate attention needed
-            {% elif risk > 50 %}
-            <strong>Service Required:</strong> Schedule within 30 days
-            {% else %}
-            <strong>Service Required:</strong> No immediate service needed
-            {% endif %}
-          </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-car"></i> Vehicle Details</h2>
+                <table class="details-table">
+                    {% for key, value in data.items() %}
+                    <tr>
+                        <th>{{ key }}</th>
+                        <td>{{ value }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
         </div>
-        {% endfor %}
-      </div>
-    </div>
-    
-    <div class="garage-tools">
-      <button class="btn" onclick="downloadPDF()">
-        <i class="fas fa-file-pdf"></i> Generate PDF Report
-      </button>
-      <a href="/" class="btn">
-        <i class="fas fa-redo"></i> Try Another Analysis
-      </a>
-    </div>
-    
-    <footer>
-      <p>Vehicle Maintenance Dashboard &copy; 2023 | <span class="highlight">Keep your vehicle in peak condition</span></p>
-    </footer>
-  </div>
+        
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-clipboard-list"></i> Section-wise Analysis</h2>
+            <table class="analysis-table">
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Risk %</th>
+                        <th>Risk Level</th>
+                        <th>Observation</th>
+                        <th>Service Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sec, risk in section_risk.items() %}
+                    <tr>
+                        <td>{{ sec }}</td>
+                        <td>{{ "%.1f"|format(risk) }}%</td>
+                        <td>
+                            <div class="risk-bar-container">
+                                <div class="risk-bar" style="width: {{ risk }}%; background:
+                                    {% if risk > 75 %}#e74c3c
+                                    {% elif risk > 50 %}#f1c40f
+                                    {% else %}#2ecc71
+                                    {% endif %};"></div>
+                            </div>
+                        </td>
+                        <td class="observation">{{ reasons[sec] }}</td>
+                        <td>
+                            <div class="service-status 
+                                {% if risk > 65 %}status-immediate
+                                {% elif risk > 30 %}status-needed
+                                {% elif risk > 15 %}status-needed 
+                                {% else %}status-ok{% endif %}">
+                                <i class="fas 
+                                    {% if risk > 65 %}fa-exclamation-circle
+                                    {% elif risk > 30 %}fa-exclamation-triangle
+                                    {% elif risk > 15 %}fa-clock
+                                    {% else %}fa-check-circle{% endif %}"></i>
+                                {% if risk > 65 %}IMMEDIATE
+                                {% elif risk > 30 %}TRY IMM.
+                                {% elif risk > 15 %}SOON
+                                {% else %}NO NEED{% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-  <script>
-    // Risk Chart
-    const ctx = document.getElementById('riskChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: {{ section_risk.keys() | list | tojson }},
-        datasets: [{
-          data: {{ section_risk.values() | list | tojson }},
-          backgroundColor: [
-            '#2ecc71', '#f1c40f', '#3498db', '#e67e22', '#9b59b6', '#e74c3c'
-          ],
-          borderWidth: 0,
-          hoverOffset: 15
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              color: '#e0e0e0',
-              padding: 15,
-              font: {
-                size: 12
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return `${context.label}: ${context.raw}% risk`;
-              }
-            }
-          }
-        },
-        cutout: '60%'
-      }
-    });
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-tools"></i> Recommended Services</h2>
+            <div class="services-grid">
+                {% for sec, risk in section_risk.items() %}
+                <div class="service-card 
+                    {% if risk > 65 %}immediate
+                    {% elif risk > 15 %}needed
+                    {% else %}ok{% endif %}">
+                    <div class="service-header">
+                        <div class="service-name">{{ sec }} System</div>
+                        <div class="priority-badge 
+                            {% if risk > 65 %}status-immediate
+                            {% elif risk > 30 %}status-needed
+                            {% elif risk > 15 %}status-needed
+                            {% else %}status-ok{% endif %}">
+                            <i class="fas 
+                                {% if risk > 65 %}fa-fire
+                                {% elif risk > 30 %}fa-exclamation-triangle
+                                {% elif risk > 15 %}fa-clock
+                                {% else %}fa-check{% endif %}"></i>
+                            {% if risk > 65 %}URGENT
+                            {% elif risk > 30 %}TRY IMM.
+                            {% elif risk > 15 %}NEEDED SOON
+                            {% else %}OK{% endif %}
+                        </div>
+                    </div>
+                    <div class="service-details">
+                        <strong>Recommended Services:</strong><br>
+                        {{ services[sec] }}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 0.85rem; color: #a0c8f0;">
+                        <i class="fas fa-info-circle"></i>
+                        {% if risk > 65 %}
+                        <strong>Service Priority:</strong> IMMEDIATE attention needed.
+                        {% elif risk > 30 %}
+                        <strong>Service Priority:</strong> Highly recommended to check immediately.
+                        {% elif risk > 15 %}
+                        <strong>Service Priority:</strong> Schedule service soon (within 30 days).
+                        {% else %}
+                        <strong>Service Priority:</strong> No immediate service needed (monitor).
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="garage-tools">
+            <button class="btn" onclick="downloadPDF()">
+                <i class="fas fa-file-pdf"></i> Generate PDF Report
+            </button>
+            <a href="/" class="btn">
+                <i class="fas fa-redo"></i> Try Another Analysis
+            </a>
+            <a href="/history" class="btn">
+                <i class="fas fa-history"></i> View History
+            </a>
+        </div>
+        
+        <footer>
+            <p>Vehicle Maintenance Dashboard &copy; 2023 | <span class="highlight">Keep your vehicle in peak condition</span></p>
+        </footer>
+    </div>
 
-    // PDF Generation
-    async function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'pt', 'a4');
-      const canvas = await html2canvas(document.body, { scale: 1.2 });
-      const imgData = canvas.toDataURL('image/png');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('Vehicle_Maintenance_Report.pdf');
-    }
-  </script>
+    <script>
+        // Risk Chart
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                // Safely convert keys to list for JS
+                labels: {{ section_risk.keys() | list | tojson }}, 
+                // Safely convert values to list for JS
+                datasets: [{
+                    data: {{ section_risk.values() | list | tojson }}, 
+                    backgroundColor: [
+                        '#2ecc71', '#f1c40f', '#3498db', '#e67e22', '#9b59b6', '#e74c3c'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: '#e0e0e0',
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.raw}% risk`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+
+        // PDF Generation
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'pt', 'a4');
+            // Use a specific selector to exclude footer/tools from the initial screen capture if desired, but using document.body is simpler
+            const content = document.querySelector('.container');
+            const canvas = await html2canvas(content, { scale: 1.2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            // Check if content fits a single page
+            if (pdfHeight > pdf.internal.pageSize.getHeight()) {
+                 // Multi-page logic (simplified: only takes the first page for this response)
+                 pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdf.internal.pageSize.getHeight());
+            } else {
+                 pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            }
+            
+            pdf.save('Vehicle_Maintenance_Report.pdf');
+        }
+    </script>
 </body>
 </html>
