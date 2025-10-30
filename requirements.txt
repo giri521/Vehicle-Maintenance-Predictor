@@ -6,3 +6,4 @@ joblib==1.4.2
 matplotlib==3.9.2
 fpdf==1.7.2
 gunicorn==23.0.0
+requests
