@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Maintenance Predictor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(rgba(10, 15, 30, 0.85), rgba(5, 10, 20, 0.9)), 
+                  url('https://cdn.dnaindia.com/sites/default/files/styles/full/public/2024/10/07/2656435-1.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      padding: 30px 0;
+    }
+    
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 10px;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+    
+    .tagline {
+      font-size: 1.2rem;
+      color: #a0c8f0;
+      margin-bottom: 20px;
+    }
+    
+    .status {
+      display: inline-block;
+      background: rgba(30, 40, 60, 0.7);
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border: 1px solid rgba(52, 152, 219, 0.3);
+    }
+    
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .form-container {
+      background: rgba(20, 25, 40, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-title {
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      color: #4dabf7;
+      text-align: center;
+    }
+    
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    @media (max-width: 600px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .form-group {
+      margin-bottom: 5px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #b0c4de;
+      font-size: 0.95rem;
+    }
+    
+    input {
+      width: 100%;
+      padding: 14px;
+      background: rgba(30, 35, 50, 0.7);
+      border: 1px solid rgba(100, 130, 180, 0.4);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #4dabf7;
+      box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.3);
+      background: rgba(40, 45, 60, 0.8);
+    }
+    
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    button {
+      background: linear-gradient(135deg, #3498db, #2c76c9);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+    }
+    
+    button:hover {
+      background: linear-gradient(135deg, #2c76c9, #1e5aa7);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+    }
+    
+    .info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    .services, .tips {
+      background: rgba(20, 25, 40, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #4dabf7;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .service-list, .tip-list {
+      list-style-type: none;
+    }
+    
+    .service-item, .tip-item {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .service-item:last-child, .tip-item:last-child {
+      border-bottom: none;
+    }
+    
+    .service-icon, .tip-icon {
+      color: #4dabf7;
+      font-size: 1.2rem;
+      width: 24px;
+      text-align: center;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 50px;
+      padding: 20px;
+      color: #a0b8d0;
+      font-size: 0.9rem;
+    }
+    
+    .highlight {
+      color: #4dabf7;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-car"></i> Vehicle Maintenance Predictor</h1>
+      <p class="tagline">Smart predictions for optimal vehicle performance</p>
+      
+    </header>
+    
+    <div class="content">
+      <div class="form-container">
+        <h2 class="form-title">Predict Maintenance Needs</h2>
+        <form action="/predict" method="post">
+          <div class="form-group">
+            <label for="engine_temp"><i class="fas fa-temperature-high"></i> Engine Temperature (°C)</label>
+            <input type="number" step="any" id="engine_temp" name="engine_temp" placeholder="e.g. 95" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="oil_pressure"><i class="fas fa-oil-can"></i> Oil Pressure (bar)</label>
+            <input type="number" step="any" id="oil_pressure" name="oil_pressure" placeholder="e.g. 4.5" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="vibration"><i class="fas fa-wave-square"></i> Vibration (Hz)</label>
+            <input type="number" step="any" id="vibration" name="vibration" placeholder="e.g. 2.1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="battery_voltage"><i class="fas fa-battery-three-quarters"></i> Battery Voltage (V)</label>
+            <input type="number" step="any" id="battery_voltage" name="battery_voltage" placeholder="e.g. 12.6" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="mileage"><i class="fas fa-tachometer-alt"></i> Mileage (km)</label>
+            <input type="number" step="any" id="mileage" name="mileage" placeholder="e.g. 45000" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="fuel_efficiency"><i class="fas fa-gas-pump"></i> Fuel Efficiency (km/l)</label>
+            <input type="number" step="any" id="fuel_efficiency" name="fuel_efficiency" placeholder="e.g. 14.5" required>
+          </div>
+          
+          <div class="form-group full-width">
+            <button type="submit">
+              <i class="fas fa-cogs"></i> Predict Maintenance
+            </button>
+          </div>
+        </form>
+      </div>
+      
+        
+        <div class="tips">
+          <h2 class="section-title"><i class="fas fa-lightbulb"></i> Maintenance Tips</h2>
+          <ul class="tip-list">
+            <li class="tip-item">
+              <span class="tip-icon"><i class="fas fa-chevron-right"></i></span>
+              <span>Check tire pressure monthly for optimal fuel efficiency</span>
+            </li>
+            <li class="tip-item">
+              <span class="tip-icon"><i class="fas fa-chevron-right"></i></span>
+              <span>Change engine oil every 5,000-7,500 km</span>
+            </li>
+            <li class="tip-item">
+              <span class="tip-icon"><i class="fas fa-chevron-right"></i></span>
+              <span>Monitor engine temperature to prevent overheating</span>
+            </li>
+            <li class="tip-item">
+              <span class="tip-icon"><i class="fas fa-chevron-right"></i></span>
+              <span>Replace air filters every 20,000 km</span>
+            </li>
+            <li class="tip-item">
+              <span class="tip-icon"><i class="fas fa-chevron-right"></i></span>
+              <span>Test battery voltage regularly, especially in winter</span>
+            </li>
+            <li class="tip-item">
+              <span class="tip-icon"><i class="fas fa-chevron-right"></i></span>
+              <span>Listen for unusual vibrations that may indicate issues</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>Vehicle Maintenance Predictor &copy; 2023 | <span class="highlight">Keep your vehicle in peak condition</span></p>
+    </footer>
+  </div>
+</body>
+</html>
