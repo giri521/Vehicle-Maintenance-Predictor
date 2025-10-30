@@ -3,12 +3,15 @@ import joblib
 import numpy as np
 import requests
 from datetime import datetime
+import os # Added for better secret key handling
 
 app = Flask(__name__)
 # IMPORTANT: Use a complex, randomly generated secret key in production
-app.secret_key = "super_secret_key" 
+# Using an environment variable is the best practice for deployment
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super_secret_key_default_fallback_use_real_one") 
 
 # ------------------- BACKENDLESS CONFIG -------------------
+# NOTE: These keys should ideally be loaded from environment variables for security.
 BACKENDLESS_APP_ID = "665EA70C-F1D1-4EC9-919A-CD75C7A21363"  # 🔧 Replace with your real App ID
 BACKENDLESS_API_KEY = "458F8A4C-8C26-410E-91B9-887CA0CFB808"  # 🔧 Replace with your REST API Key
 USER_URL = f"https://api.backendless.com/{BACKENDLESS_APP_ID}/{BACKENDLESS_API_KEY}/data/vehicle_users"
@@ -19,11 +22,12 @@ HISTORY_URL = f"https://api.backendless.com/{BACKENDLESS_APP_ID}/{BACKENDLESS_AP
 # ------------------- MODEL LOADING -------------------
 # Assuming 'model.pkl' and 'scaler.pkl' are available in the same directory
 try:
+    # NOTE: joblib.load requires model.pkl and scaler.pkl files to exist.
     model = joblib.load("model.pkl")
     scaler = joblib.load("scaler.pkl")
     print("✅ Machine Learning Model and Scaler loaded successfully.")
 except FileNotFoundError:
-    print("⚠️ Warning: model.pkl or scaler.pkl not found. Prediction functionality will fail.")
+    print("⚠️ Warning: model.pkl or scaler.pkl not found. Prediction functionality will be disabled.")
     model = None
     scaler = None
 except Exception as e:
@@ -37,6 +41,7 @@ except Exception as e:
 @app.route('/')
 def main():
     """Login/Register page."""
+    # Renders main.html (MUST BE CREATED)
     return render_template('main.html')
 
 # ------------------- REGISTER -------------------
@@ -55,6 +60,7 @@ def register():
         query_url = f"{USER_URL}?where=vehicle_number='{data['vehicle_number']}'"
         res = requests.get(query_url)
         
+        # Check if request was successful AND records were returned
         if res.status_code == 200 and len(res.json()) > 0:
             return "⚠️ Vehicle already registered. Please login instead."
 
@@ -62,7 +68,7 @@ def register():
         res = requests.post(USER_URL, json=data)
         if res.status_code == 200:
             # Optionally log the user in immediately
-            session['user'] = res.json() 
+            session['user'] = res.json()  
             return redirect(url_for('home'))
         else:
             return f"Registration failed: {res.text}"
@@ -87,6 +93,7 @@ def login():
                 return "❌ Vehicle not found. Please register first."
 
             user = users[0]
+            # NOTE: For real-world security, you must use password hashing (e.g., bcrypt)
             if user['password'] == password:
                 session['user'] = user
                 return redirect(url_for('home'))
@@ -121,6 +128,7 @@ def home():
         print(f"Error fetching recent prediction: {e}")
         # Continue even if fetching fails, just recent_prediction will be None
 
+    # Renders index.html (MUST BE CREATED)
     return render_template('index.html', user=user, recent=recent_prediction)
 
 # ------------------- PREDICT -------------------
@@ -131,7 +139,7 @@ def predict():
         return redirect(url_for('main'))
         
     if not model or not scaler:
-         return "ML model is not loaded. Cannot perform prediction."
+        return "ML model is not loaded. Cannot perform prediction."
 
     user = session['user']
 
@@ -151,35 +159,41 @@ def predict():
         scaled = scaler.transform(features)
         pred = model.predict(scaled)[0] # 0 for No Maintenance, 1 for Maintenance
 
-        # --- Risk Calculation & Analysis ---
-        # Note: These are heuristic risk calculations based on common engine knowledge
+        # --- Risk Calculation & Analysis (Heuristic based on common sense) ---
         section_risk = {
-            "Engine": min(100, abs(data['Engine Temperature (°C)'] - 90) * 1.2), # Ideal ~90°C
-            "Oil Pressure": min(100, abs(data['Oil Pressure (bar)'] - 3.5) * 15), # Ideal ~3.5 bar
-            "Vibration": min(100, data['Vibration Level (Hz)'] * 2), # Ideal near 0 Hz
-            "Battery": min(100, abs(data['Battery Voltage (V)'] - 12.6) * 10), # Ideal ~12.6V
-            "Mileage": min(100, (data['Mileage (km)'] / 200000) * 100), # Linear wear over 200,000 km
-            "Fuel System": min(100, abs(data['Fuel Efficiency (km/l)'] - 15) * 5) # Ideal ~15 km/l (example)
+            # Risk increases as it deviates from an ideal temperature of 90°C
+            "Engine": round(min(100, abs(data['Engine Temperature (°C)'] - 90) * 1.2), 2), 
+            # Risk increases as it deviates from an ideal oil pressure of 3.5 bar
+            "Oil Pressure": round(min(100, abs(data['Oil Pressure (bar)'] - 3.5) * 15), 2), 
+            # Risk increases linearly with vibration
+            "Vibration": round(min(100, data['Vibration Level (Hz)'] * 20), 2), 
+            # Risk increases as it deviates from an ideal off-state voltage of 12.6V
+            "Battery": round(min(100, abs(data['Battery Voltage (V)'] - 12.6) * 10), 2), 
+            # Linear wear over 200,000 km
+            "Mileage": round(min(100, (data['Mileage (km)'] / 200000) * 100), 2), 
+            # Risk increases as it deviates from an ideal efficiency of 15 km/l
+            "Fuel System": round(min(100, abs(data['Fuel Efficiency (km/l)'] - 15) * 5), 2)
         }
 
         overall_risk = round(sum(section_risk.values()) / len(section_risk), 2)
 
+        # Detailed analysis and service recommendations
         reasons = {
-            "Engine": "High temperature may cause wear and tear or coolant issues. Ideal range is 85-105°C.",
-            "Oil Pressure": "Low or high oil pressure can damage moving parts. Ideal range is 3.0-4.0 bar.",
-            "Vibration": "Excess vibration suggests imbalance, worn mounts, or engine issue. Ideal is below 1 Hz.",
-            "Battery": "Voltage instability can affect electrical systems. Ideal is 12.4V-12.8V (off) or 13.5V-14.5V (on).",
-            "Mileage": "Higher mileage indicates natural wear of major components.",
-            "Fuel System": "Poor efficiency suggests fuel filter, injector, or air intake issues."
+            "Engine": "High temperature suggests potential cooling or oil issues. Ideal operating range is 85-105°C.",
+            "Oil Pressure": "Deviation from 3.0-4.0 bar can cause severe damage to internal components.",
+            "Vibration": "High vibration (ideally < 1 Hz) suggests issues with mounts, tires, or engine balance.",
+            "Battery": "Voltage outside the 12.4V-12.8V (off) range indicates charging or capacity issues.",
+            "Mileage": "High mileage triggers the need for comprehensive inspection of wear items like belts, bushings, and brakes.",
+            "Fuel System": "Poor efficiency suggests fuel filter clogs, injector issues, or sensor malfunctions."
         }
 
         services = {
-            "Engine": "Check coolant level, thermostat, water pump, and oil quality.",
-            "Oil Pressure": "Check oil level, oil filter condition, and oil pump integrity.",
-            "Vibration": "Inspect engine mounts, check wheel/tire balance, or review suspension.",
-            "Battery": "Check battery terminals, alternator, and run a load test.",
-            "Mileage": "Perform a major service, inspect brake pads and belts.",
-            "Fuel System": "Clean fuel injectors, replace fuel filter, inspect air filter."
+            "Engine": "Check coolant level, thermostat, water pump, and radiator for blockages.",
+            "Oil Pressure": "Inspect oil level, change oil/filter, and check the oil pump's integrity.",
+            "Vibration": "Inspect engine mounts, balance tires, and check wheel alignment.",
+            "Battery": "Clean terminals, check alternator output, and perform a full load test.",
+            "Mileage": "Perform a major service including timing belt inspection and fluid changes.",
+            "Fuel System": "Replace the fuel filter, clean injectors, and inspect air filter integrity."
         }
 
         result = "🟢 No Immediate Maintenance Required"
@@ -193,7 +207,7 @@ def predict():
         history_data = {
             "vehicle_number": user['vehicle_number'],
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "ownerId": user['ownerId'], # Link to the user object
+            "ownerId": user.get('ownerId', 'anonymous'), # Link to the user object, use get for safety
             "overall_risk": overall_risk,
             "result": result,
             # Flatten feature data for easy storage and retrieval
@@ -207,9 +221,9 @@ def predict():
         
         # Save the full prediction data to the history table
         requests.post(HISTORY_URL, json=history_data) 
-        # Note: Ignoring result for simplicity, but logging/error handling is good practice.
 
         # --- Render Result Page ---
+        # Renders result.html (MUST BE CREATED)
         return render_template(
             'result.html',
             result=result,
@@ -223,7 +237,8 @@ def predict():
     except ValueError:
         return "Error: Invalid input. All fields must be numeric.", 400
     except Exception as e:
-        return f"Error: {str(e)}", 500
+        # Catch exceptions like issues with requests/Backendless connection
+        return f"A server error occurred during prediction: {str(e)}", 500
 
 # ------------------- HISTORY -------------------
 @app.route('/history')
@@ -247,15 +262,17 @@ def history():
         print(f"Error fetching history: {e}")
         # history_data remains an empty list
 
-    # Re-map keys to match history.html template expectations (as they were in data dict)
+    # Re-map keys to match history.html template expectations
     for record in history_data:
-        record['Engine Temperature (°C)'] = record.pop('engine_temp')
-        record['Oil Pressure (bar)'] = record.pop('oil_pressure')
-        record['Vibration Level (Hz)'] = record.pop('vibration')
-        record['Battery Voltage (V)'] = record.pop('battery_voltage')
-        record['Mileage (km)'] = record.pop('mileage')
-        record['Fuel Efficiency (km/l)'] = record.pop('fuel_efficiency')
+        # Use .get for robustness in case a field is missing
+        record['Engine Temperature (°C)'] = record.get('engine_temp')
+        record['Oil Pressure (bar)'] = record.get('oil_pressure')
+        record['Vibration Level (Hz)'] = record.get('vibration')
+        record['Battery Voltage (V)'] = record.get('battery_voltage')
+        record['Mileage (km)'] = record.get('mileage')
+        record['Fuel Efficiency (km/l)'] = record.get('fuel_efficiency')
 
+    # Renders history.html (MUST BE CREATED)
     return render_template('history.html', user=user, history_data=history_data)
 
 # ------------------- LOGOUT -------------------
