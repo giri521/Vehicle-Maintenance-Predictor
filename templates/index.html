@@ -369,8 +369,8 @@
                     <div class="stat-value">{{ recent.battery_voltage }} V</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label">Mileage</div>
-                    <div class="stat-value">{{ recent.mileage }} km</div>
+                    <div class="stat-label">Brake Pad Wear</div>
+                    <div class="stat-value">{{ recent.brake_wear }}%</div>
                 </div>
                 <div class="stat-box">
                     <div class="stat-label">Fuel Efficiency</div>
@@ -407,8 +407,8 @@
           </div>
 
           <div class="form-group">
-            <label for="mileage"><i class="fas fa-tachometer-alt"></i> Mileage (km)</label>
-            <input type="number" step="any" id="mileage" name="mileage" placeholder="e.g. 45000" required>
+            <label for="brake_wear"><i class="fas fa-brake-warning"></i> Brake Pad Wear (%)</label>
+            <input type="number" step="any" id="brake_wear" name="brake_wear" min="0" max="100" placeholder="e.g. 25" required>
           </div>
 
           <div class="form-group">
