@@ -676,69 +676,165 @@
       
       <div class="card">
         <h2 class="card-title"><i class="fas fa-car"></i> Vehicle Details</h2>
-        <table class="details-table">
-          <tr>
-            <th>Engine Temperature</th>
-            <td>
-              <div class="parameter-value">95.0°C</div>
-              <div class="parameter-range parameter-ideal">
-                <i class="fas fa-check-circle"></i> Ideal Range: 85-100°C
-                <span class="parameter-status" style="background-color: #2ecc71;"></span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th>Oil Pressure</th>
-            <td>
-              <div class="parameter-value">4.5 bar</div>
-              <div class="parameter-range parameter-warning">
-                <i class="fas fa-exclamation-triangle"></i> Normal Range: 2.0-4.0 bar (slightly high)
-                <span class="parameter-status" style="background-color: #f1c40f;"></span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th>Vibration Level</th>
-            <td>
-              <div class="parameter-value">2.1 Hz</div>
-              <div class="parameter-range parameter-ideal">
-                <i class="fas fa-check-circle"></i> Good Range: 0-5 Hz
-                <span class="parameter-status" style="background-color: #2ecc71;"></span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th>Battery Voltage</th>
-            <td>
-              <div class="parameter-value">12.6 V</div>
-              <div class="parameter-range parameter-ideal">
-                <i class="fas fa-check-circle"></i> Optimal Range: 12.4-12.8 V
-                <span class="parameter-status" style="background-color: #2ecc71;"></span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th>Mileage</th>
-            <td>
-              <div class="parameter-value">4,500 km</div>
-              <div class="parameter-range parameter-ideal">
-                <i class="fas fa-check-circle"></i> Low Mileage - Excellent condition
-                <span class="parameter-status" style="background-color: #2ecc71;"></span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <th>Fuel Efficiency</th>
-            <td>
-              <div class="parameter-value">14.5 km/l</div>
-              <div class="parameter-range parameter-ideal">
-                <i class="fas fa-check-circle"></i> Good Range: 12-18 km/l
-                <span class="parameter-status" style="background-color: #2ecc71;"></span>
-              </div>
-            </td>
-          </tr>
-        </table>
-        
+    <table class="details-table">
+
+<tr>
+  <th>Engine Temperature</th>
+  <td>
+    {% set val = data['Engine Temperature (°C)'] %}
+    <div class="parameter-value">{{ val }}°C</div>
+
+    {% if 85 <= val <= 100 %}
+      <div class="parameter-range parameter-ideal">
+        <i class="fas fa-check-circle"></i> Ideal Range: 85-100°C
+        <span class="parameter-status" style="background-color:#2ecc71;"></span>
+      </div>
+    {% elif 100 < val <= 110 or 70 <= val < 85 %}
+      <div class="parameter-range parameter-warning">
+        <i class="fas fa-exclamation-triangle"></i> Warning Range
+        <span class="parameter-status" style="background-color:#f1c40f;"></span>
+      </div>
+    {% else %}
+      <div class="parameter-range parameter-critical">
+        <i class="fas fa-times-circle"></i> Critical Level
+        <span class="parameter-status" style="background-color:#e74c3c;"></span>
+      </div>
+    {% endif %}
+  </td>
+</tr>
+
+
+<tr>
+  <th>Oil Pressure</th>
+  <td>
+    {% set val = data['Oil Pressure (bar)'] %}
+    <div class="parameter-value">{{ val }} bar</div>
+
+    {% if 2.0 <= val <= 4.0 %}
+      <div class="parameter-range parameter-ideal">
+        <i class="fas fa-check-circle"></i> Optimal Range: 2.0-4.0 bar
+        <span class="parameter-status" style="background-color:#2ecc71;"></span>
+      </div>
+    {% elif 1.5 <= val < 2.0 or 4.0 < val <= 5.0 %}
+      <div class="parameter-range parameter-warning">
+        <i class="fas fa-exclamation-triangle"></i> Slightly Out of Range
+        <span class="parameter-status" style="background-color:#f1c40f;"></span>
+      </div>
+    {% else %}
+      <div class="parameter-range parameter-critical">
+        <i class="fas fa-times-circle"></i> Critical Pressure
+        <span class="parameter-status" style="background-color:#e74c3c;"></span>
+      </div>
+    {% endif %}
+  </td>
+</tr>
+
+
+<tr>
+  <th>Vibration Level</th>
+  <td>
+    {% set val = data['Vibration Level (Hz)'] %}
+    <div class="parameter-value">{{ val }} Hz</div>
+
+    {% if 0 <= val <= 5 %}
+      <div class="parameter-range parameter-ideal">
+        <i class="fas fa-check-circle"></i> Good Range: 0-5 Hz
+        <span class="parameter-status" style="background-color:#2ecc71;"></span>
+      </div>
+    {% elif 5 < val <= 10 %}
+      <div class="parameter-range parameter-warning">
+        <i class="fas fa-exclamation-triangle"></i> Moderate Vibration
+        <span class="parameter-status" style="background-color:#f1c40f;"></span>
+      </div>
+    {% else %}
+      <div class="parameter-range parameter-critical">
+        <i class="fas fa-times-circle"></i> High Vibration
+        <span class="parameter-status" style="background-color:#e74c3c;"></span>
+      </div>
+    {% endif %}
+  </td>
+</tr>
+
+
+<tr>
+  <th>Battery Voltage</th>
+  <td>
+    {% set val = data['Battery Voltage (V)'] %}
+    <div class="parameter-value">{{ val }} V</div>
+
+    {% if 12.4 <= val <= 12.8 %}
+      <div class="parameter-range parameter-ideal">
+        <i class="fas fa-check-circle"></i> Optimal Range: 12.4-12.8 V
+        <span class="parameter-status" style="background-color:#2ecc71;"></span>
+      </div>
+    {% elif 12.0 <= val < 12.4 or 12.8 < val <= 13.0 %}
+      <div class="parameter-range parameter-warning">
+        <i class="fas fa-exclamation-triangle"></i> Slight Voltage Variation
+        <span class="parameter-status" style="background-color:#f1c40f;"></span>
+      </div>
+    {% else %}
+      <div class="parameter-range parameter-critical">
+        <i class="fas fa-times-circle"></i> Voltage Issue
+        <span class="parameter-status" style="background-color:#e74c3c;"></span>
+      </div>
+    {% endif %}
+  </td>
+</tr>
+
+
+<tr>
+  <th>Mileage</th>
+  <td>
+    {% set val = data['Mileage (km)'] %}
+    <div class="parameter-value">{{ val }} km</div>
+
+    {% if val <= 50000 %}
+      <div class="parameter-range parameter-ideal">
+        <i class="fas fa-check-circle"></i> Excellent Condition
+        <span class="parameter-status" style="background-color:#2ecc71;"></span>
+      </div>
+    {% elif val <= 100000 %}
+      <div class="parameter-range parameter-warning">
+        <i class="fas fa-exclamation-triangle"></i> Moderate Wear
+        <span class="parameter-status" style="background-color:#f1c40f;"></span>
+      </div>
+    {% else %}
+      <div class="parameter-range parameter-critical">
+        <i class="fas fa-times-circle"></i> High Wear
+        <span class="parameter-status" style="background-color:#e74c3c;"></span>
+      </div>
+    {% endif %}
+  </td>
+</tr>
+
+
+<tr>
+  <th>Fuel Efficiency</th>
+  <td>
+    {% set val = data['Fuel Efficiency (km/l)'] %}
+    <div class="parameter-value">{{ val }} km/l</div>
+
+    {% if 12 <= val <= 18 %}
+      <div class="parameter-range parameter-ideal">
+        <i class="fas fa-check-circle"></i> Good Efficiency
+        <span class="parameter-status" style="background-color:#2ecc71;"></span>
+      </div>
+    {% elif 8 <= val < 12 %}
+      <div class="parameter-range parameter-warning">
+        <i class="fas fa-exclamation-triangle"></i> Low Efficiency
+        <span class="parameter-status" style="background-color:#f1c40f;"></span>
+      </div>
+    {% else %}
+      <div class="parameter-range parameter-critical">
+        <i class="fas fa-times-circle"></i> Very Poor Efficiency
+        <span class="parameter-status" style="background-color:#e74c3c;"></span>
+      </div>
+    {% endif %}
+  </td>
+</tr>
+
+</table>
+
         <!-- Parameter Ranges Legend -->
         <div style="margin-top: 20px; padding: 15px; background: rgba(40, 45, 60, 0.6); border-radius: 10px;">
           <h4 style="color: #b0c4de; margin-bottom: 10px; font-size: 1rem;">
