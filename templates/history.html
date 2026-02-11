@@ -155,6 +155,40 @@
             border: 1px solid rgba(46, 204, 113, 0.4);
         }
         
+        .brake-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .brake-good {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+        }
+        
+        .brake-moderate {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+            border: 1px solid rgba(241, 196, 15, 0.4);
+        }
+        
+        .brake-soon {
+            background: rgba(230, 126, 34, 0.2);
+            color: #e67e22;
+            border: 1px solid rgba(230, 126, 34, 0.4);
+        }
+        
+        .brake-critical {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.4);
+        }
+        
         .no-data {
             text-align: center;
             padding: 40px;
@@ -188,12 +222,6 @@
             color: #b0c4de;
             font-size: 0.9rem;
         }
-        
-        /* New Status Styles for detailed color coding */
-        .status-good { color: #2ecc71; }
-        .status-soon { color: #f1c40f; }
-        .status-immediate-try { color: #ff8c00; }
-        .status-immediate { color: #e74c3c; font-weight: bold; }
         
         footer {
             text-align: center;
@@ -253,7 +281,7 @@
             <div class="stat-card">
                 <div class="stat-label">Maintenance Alerts</div>
                 <div class="stat-value">
-                    {{ history_data|selectattr("maintenance_status", "in", "Required")|list|length }}
+                    {{ history_data|selectattr("result", "equalto", "🔴 Maintenance Required Soon!")|list|length }}
                 </div>
             </div>
         </div>
@@ -277,7 +305,7 @@
                         <th>Oil Pressure (bar)</th>
                         <th>Vibration (Hz)</th>
                         <th>Battery (V)</th>
-                        <th>Mileage (km)</th>
+                        <th>Brake Pad Wear (%)</th>
                         <th>Fuel Eff. (km/l)</th>
                     </tr>
                 </thead>
@@ -297,30 +325,38 @@
                                 {{ row.overall_risk }}%
                             </div>
                         </td>
-                        
                         <td>
-                            {% set status = row.maintenance_status %}
-                            <span class="
-                                {% if 'IMMEDIATE Required' in status %}status-immediate
-                                {% elif 'Try Immediate Required' in status %}status-immediate-try
-                                {% elif 'Required Soon' in status %}status-soon
-                                {% else %}status-good{% endif %}">
-                                
-                                <i class="fas 
-                                    {% if 'IMMEDIATE Required' in status %}fa-biohazard
-                                    {% elif 'Try Immediate Required' in status %}fa-exclamation-triangle
-                                    {% elif 'Required Soon' in status %}fa-clock
-                                    {% else %}fa-check-circle{% endif %}"></i>
-                                
-                                {{ status }}
-                            </span>
+                            {% if "Maintenance Required" in row.result %}
+                            <span style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Required</span>
+                            {% else %}
+                            <span style="color: #2ecc71;"><i class="fas fa-check-circle"></i> Good</span>
+                            {% endif %}
                         </td>
-                        
                         <td>{{ row['Engine Temperature (°C)'] }}</td>
                         <td>{{ row['Oil Pressure (bar)'] }}</td>
                         <td>{{ row['Vibration Level (Hz)'] }}</td>
                         <td>{{ row['Battery Voltage (V)'] }}</td>
-                        <td>{{ row['Mileage (km)'] }}</td>
+                        <td>
+                            {% set brake_wear = row['Brake Pad Wear (%)']|float %}
+                            <div class="brake-badge 
+                                {% if brake_wear <= 40 %}brake-good
+                                {% elif brake_wear <= 70 %}brake-moderate
+                                {% elif brake_wear <= 90 %}brake-soon
+                                {% else %}brake-critical{% endif %}">
+                                <i class="fas 
+                                    {% if brake_wear <= 40 %}fa-check-circle
+                                    {% elif brake_wear <= 70 %}fa-exclamation-triangle
+                                    {% elif brake_wear <= 90 %}fa-tools
+                                    {% else %}fa-exclamation-circle{% endif %}"></i>
+                                {{ "%.0f"|format(brake_wear) }}%
+                                <span style="margin-left: 4px;">
+                                    {% if brake_wear <= 40 %}Good
+                                    {% elif brake_wear <= 70 %}Moderate
+                                    {% elif brake_wear <= 90 %}Replace Soon
+                                    {% else %}Critical{% endif %}
+                                </span>
+                            </div>
+                        </td>
                         <td>{{ row['Fuel Efficiency (km/l)'] }}</td>
                     </tr>
                     {% endfor %}
