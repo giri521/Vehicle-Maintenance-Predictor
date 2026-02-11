@@ -783,24 +783,29 @@
 
 
 <tr>
-  <th>Mileage</th>
+  <th>Brake Pad Wear</th>
   <td>
-    {% set val = data['Mileage (km)'] %}
-    <div class="parameter-value">{{ val }} km</div>
+    {% set val = data['Brake Pad Wear (%)'] %}
+    <div class="parameter-value">{{ val }}%</div>
 
-    {% if val <= 50000 %}
+    {% if 0 <= val <= 40 %}
       <div class="parameter-range parameter-ideal">
-        <i class="fas fa-check-circle"></i> Excellent Condition
+        <i class="fas fa-check-circle"></i> Good Condition
         <span class="parameter-status" style="background-color:#2ecc71;"></span>
       </div>
-    {% elif val <= 100000 %}
+    {% elif 41 <= val <= 70 %}
       <div class="parameter-range parameter-warning">
         <i class="fas fa-exclamation-triangle"></i> Moderate Wear
         <span class="parameter-status" style="background-color:#f1c40f;"></span>
       </div>
+    {% elif 71 <= val <= 90 %}
+      <div class="parameter-range" style="border-left-color: #e67e22; background: rgba(230, 126, 34, 0.1);">
+        <i class="fas fa-tools"></i> Replace Soon
+        <span class="parameter-status" style="background-color:#e67e22;"></span>
+      </div>
     {% else %}
       <div class="parameter-range parameter-critical">
-        <i class="fas fa-times-circle"></i> High Wear
+        <i class="fas fa-times-circle"></i> Immediate Replacement Required
         <span class="parameter-status" style="background-color:#e74c3c;"></span>
       </div>
     {% endif %}
@@ -853,6 +858,10 @@
               <div class="parameter-status" style="background-color: #e74c3c;"></div>
               <span style="color: #a0c8f0; font-size: 0.9rem;">Critical/Needs Attention</span>
             </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="parameter-status" style="background-color: #e67e22;"></div>
+              <span style="color: #a0c8f0; font-size: 0.9rem;">Replace Soon</span>
+            </div>
           </div>
         </div>
         
@@ -895,20 +904,20 @@
               </div>
             </div>
             <div style="background: rgba(40, 45, 60, 0.5); padding: 12px; border-radius: 8px;">
+              <div style="color: #4dabf7; font-weight: 600; margin-bottom: 5px;">Brake Pad Wear</div>
+              <div style="font-size: 0.9rem; color: #b0c4de;">
+                • Good: 0-40%<br>
+                • Moderate: 41-70%<br>
+                • Replace Soon: 71-90%<br>
+                • Immediate: 91-100%
+              </div>
+            </div>
+            <div style="background: rgba(40, 45, 60, 0.5); padding: 12px; border-radius: 8px;">
               <div style="color: #4dabf7; font-weight: 600; margin-bottom: 5px;">Fuel Efficiency</div>
               <div style="font-size: 0.9rem; color: #b0c4de;">
                 • Optimal: 12-18 km/l<br>
                 • Warning: 8-12 km/l<br>
                 • Critical: <8 km/l
-              </div>
-            </div>
-            <div style="background: rgba(40, 45, 60, 0.5); padding: 12px; border-radius: 8px;">
-              <div style="color: #4dabf7; font-weight: 600; margin-bottom: 5px;">Mileage Assessment</div>
-              <div style="font-size: 0.9rem; color: #b0c4de;">
-                • Excellent: 0-50,000 km<br>
-                • Good: 50,000-100,000 km<br>
-                • High: 100,000-200,000 km<br>
-                • Critical: >200,000 km
               </div>
             </div>
           </div>
@@ -1119,7 +1128,7 @@
         'oilPressure': {value: 4.5, min: 2.0, max: 4.0, unit: 'bar'},
         'vibration': {value: 2.1, min: 0, max: 5, unit: 'Hz'},
         'batteryVoltage': {value: 12.6, min: 12.4, max: 12.8, unit: 'V'},
-        'mileage': {value: 4500, min: 0, max: 50000, unit: 'km'},
+        'brakeWear': {value: 25, min: 0, max: 40, unit: '%'},
         'fuelEfficiency': {value: 14.5, min: 12, max: 18, unit: 'km/l'}
       };
       
