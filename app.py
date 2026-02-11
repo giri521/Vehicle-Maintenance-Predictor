@@ -109,8 +109,9 @@ def home():
     recent_prediction = None
     
     # 1. Fetch the most recent prediction for this vehicle
+    # Use 'sortBy=-created' to get the newest record first, and 'pageSize=1' for only one result
     query_url = (f"{HISTORY_URL}?where=vehicle_number='{user['vehicle_number']}'"
-                  f"&sortBy=-created&pageSize=1")
+                 f"&sortBy=-created&pageSize=1")
     
     try:
         res = requests.get(query_url)
@@ -118,6 +119,7 @@ def home():
             recent_prediction = res.json()[0]
     except Exception as e:
         print(f"Error fetching recent prediction: {e}")
+        # Continue even if fetching fails, just recent_prediction will be None
 
     return render_template('index.html', user=user, recent=recent_prediction)
 
@@ -129,7 +131,7 @@ def predict():
         return redirect(url_for('main'))
         
     if not model or not scaler:
-          return "ML model is not loaded. Cannot perform prediction."
+         return "ML model is not loaded. Cannot perform prediction."
 
     user = session['user']
 
@@ -150,49 +152,17 @@ def predict():
         pred = model.predict(scaled)[0] # 0 for No Maintenance, 1 for Maintenance
 
         # --- Risk Calculation & Analysis ---
+        # Note: These are heuristic risk calculations based on common engine knowledge
         section_risk = {
-            "Engine": min(100, abs(data['Engine Temperature (°C)'] - 90) * 1.2),
-            "Oil Pressure": min(100, abs(data['Oil Pressure (bar)'] - 3.5) * 15),
-            "Vibration": min(100, data['Vibration Level (Hz)'] * 2),
-            "Battery": min(100, abs(data['Battery Voltage (V)'] - 12.6) * 10),
-            "Mileage": min(100, (data['Mileage (km)'] / 200000) * 100),
-            "Fuel System": min(100, abs(data['Fuel Efficiency (km/l)'] - 15) * 5)
+            "Engine": min(100, abs(data['Engine Temperature (°C)'] - 90) * 1.2), # Ideal ~90°C
+            "Oil Pressure": min(100, abs(data['Oil Pressure (bar)'] - 3.5) * 15), # Ideal ~3.5 bar
+            "Vibration": min(100, data['Vibration Level (Hz)'] * 2), # Ideal near 0 Hz
+            "Battery": min(100, abs(data['Battery Voltage (V)'] - 12.6) * 10), # Ideal ~12.6V
+            "Mileage": min(100, (data['Mileage (km)'] / 200000) * 100), # Linear wear over 200,000 km
+            "Fuel System": min(100, abs(data['Fuel Efficiency (km/l)'] - 15) * 5) # Ideal ~15 km/l (example)
         }
 
         overall_risk = round(sum(section_risk.values()) / len(section_risk), 2)
-
-        # --- New Status Logic based on Risk and ML Prediction ---
-        maintenance_status = "🟢 Good" # Default for 0-15%
-
-        if overall_risk > 65:
-            # 66 - 100: Immediate Required
-            maintenance_status = "🔥 IMMEDIATE Required!"
-        elif overall_risk > 30:
-            # 31 - 65: Try Immediate Required
-            maintenance_status = "🔴 Try Immediate Required"
-        elif overall_risk > 15:
-            # 16 - 30: Required Soon
-            maintenance_status = "🟡 Required Soon"
-        
-        # If ML predicts maintenance, ensure the status reflects a need for service
-        if pred == 1:
-            if overall_risk <= 15: 
-                 maintenance_status = "🟡 Required Soon"
-            elif overall_risk > 65:
-                 maintenance_status = "🔥 IMMEDIATE Required!"
-            elif overall_risk > 30:
-                 maintenance_status = "🔴 Try Immediate Required"
-            else: # 16-30%
-                 maintenance_status = "🟡 Required Soon"
-        
-        # Determine the simple result message (used on result.html for older logic)
-        if "IMMEDIATE" in maintenance_status:
-            result = "🔥 URGENT Maintenance Required!"
-        elif "Required" in maintenance_status:
-            result = "🔴 Maintenance Required Soon!"
-        else:
-            result = "🟢 No Immediate Maintenance Required"
-            
 
         reasons = {
             "Engine": "High temperature may cause wear and tear or coolant issues. Ideal range is 85-105°C.",
@@ -212,15 +182,20 @@ def predict():
             "Fuel System": "Clean fuel injectors, replace fuel filter, inspect air filter."
         }
 
+        result = "🟢 No Immediate Maintenance Required"
+        if pred == 1 or overall_risk > 50: # Trigger maintenance if ML predicts it OR overall risk is high
+            result = "🔴 Maintenance Required Soon!"
+        if overall_risk > 75: # Higher threshold for URGENT message
+             result = "🔥 URGENT Maintenance Required!"
+
 
         # --- Save to Backendless History ---
         history_data = {
             "vehicle_number": user['vehicle_number'],
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "ownerId": user['ownerId'], 
+            "ownerId": user['ownerId'], # Link to the user object
             "overall_risk": overall_risk,
-            "result": result, 
-            "maintenance_status": maintenance_status, # NEW field for detailed status
+            "result": result,
             # Flatten feature data for easy storage and retrieval
             "engine_temp": data['Engine Temperature (°C)'],
             "oil_pressure": data['Oil Pressure (bar)'],
@@ -232,6 +207,7 @@ def predict():
         
         # Save the full prediction data to the history table
         requests.post(HISTORY_URL, json=history_data) 
+        # Note: Ignoring result for simplicity, but logging/error handling is good practice.
 
         # --- Render Result Page ---
         return render_template(
@@ -241,8 +217,7 @@ def predict():
             section_risk=section_risk,
             reasons=reasons,
             services=services,
-            overall_risk=overall_risk,
-            maintenance_status=maintenance_status 
+            overall_risk=overall_risk
         )
 
     except ValueError:
@@ -262,7 +237,7 @@ def history():
 
     # Fetch all history records for this vehicle, sorted by newest first
     query_url = (f"{HISTORY_URL}?where=vehicle_number='{user['vehicle_number']}'"
-                  f"&sortBy=-timestamp") # Sort by timestamp descending
+                 f"&sortBy=-timestamp") # Sort by timestamp descending
 
     try:
         res = requests.get(query_url)
@@ -270,29 +245,10 @@ def history():
             history_data = res.json()
     except Exception as e:
         print(f"Error fetching history: {e}")
+        # history_data remains an empty list
 
-    # Re-map keys and ensure data integrity for the new 'maintenance_status' field
+    # Re-map keys to match history.html template expectations (as they were in data dict)
     for record in history_data:
-        # Safely retrieve maintenance_status. Use .get() to handle missing keys from old records.
-        status = record.get('maintenance_status')
-
-        # FIX: If the status is missing or None, calculate a default status based on risk
-        if status is None:
-             # Default risk to 0 in case the key is missing entirely (highly unlikely here, but safe)
-             risk = record.get('overall_risk', 0) 
-             
-             # Re-apply the logic used in /predict to create the missing status string
-             if risk > 65:
-                 record['maintenance_status'] = "🔥 IMMEDIATE Required!"
-             elif risk > 30:
-                 record['maintenance_status'] = "🔴 Try Immediate Required"
-             elif risk > 15:
-                 record['maintenance_status'] = "🟡 Required Soon"
-             else:
-                 record['maintenance_status'] = "🟢 Good"
-
-
-        # Re-map feature data for the template
         record['Engine Temperature (°C)'] = record.pop('engine_temp')
         record['Oil Pressure (bar)'] = record.pop('oil_pressure')
         record['Vibration Level (Hz)'] = record.pop('vibration')
