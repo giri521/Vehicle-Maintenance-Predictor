@@ -142,7 +142,7 @@ def predict():
             'Oil Pressure (bar)': float(request.form['oil_pressure']),
             'Vibration Level (Hz)': float(request.form['vibration']),
             'Battery Voltage (V)': float(request.form['battery_voltage']),
-            'Mileage (km)': float(request.form['mileage']),
+            'Brake Pad Wear (%)': float(request.form['brake_wear']),
             'Fuel Efficiency (km/l)': float(request.form['fuel_efficiency'])
         }
 
@@ -158,7 +158,7 @@ def predict():
             "Oil Pressure": min(100, abs(data['Oil Pressure (bar)'] - 3.5) * 15), # Ideal ~3.5 bar
             "Vibration": min(100, data['Vibration Level (Hz)'] * 2), # Ideal near 0 Hz
             "Battery": min(100, abs(data['Battery Voltage (V)'] - 12.6) * 10), # Ideal ~12.6V
-            "Mileage": min(100, (data['Mileage (km)'] / 200000) * 100), # Linear wear over 200,000 km
+            "Brakes": data['Brake Pad Wear (%)'], # Direct percentage value
             "Fuel System": min(100, abs(data['Fuel Efficiency (km/l)'] - 15) * 5) # Ideal ~15 km/l (example)
         }
 
@@ -169,7 +169,7 @@ def predict():
             "Oil Pressure": "Low or high oil pressure can damage moving parts. Ideal range is 3.0-4.0 bar.",
             "Vibration": "Excess vibration suggests imbalance, worn mounts, or engine issue. Ideal is below 1 Hz.",
             "Battery": "Voltage instability can affect electrical systems. Ideal is 12.4V-12.8V (off) or 13.5V-14.5V (on).",
-            "Mileage": "Higher mileage indicates natural wear of major components.",
+            "Brakes": "Brake pads wear down over time. High wear reduces stopping power and increases accident risk.",
             "Fuel System": "Poor efficiency suggests fuel filter, injector, or air intake issues."
         }
 
@@ -178,7 +178,7 @@ def predict():
             "Oil Pressure": "Check oil level, oil filter condition, and oil pump integrity.",
             "Vibration": "Inspect engine mounts, check wheel/tire balance, or review suspension.",
             "Battery": "Check battery terminals, alternator, and run a load test.",
-            "Mileage": "Perform a major service, inspect brake pads and belts.",
+            "Brakes": "Inspect brake pads and replace if wear exceeds safe limits.",
             "Fuel System": "Clean fuel injectors, replace fuel filter, inspect air filter."
         }
 
@@ -201,7 +201,7 @@ def predict():
             "oil_pressure": data['Oil Pressure (bar)'],
             "vibration": data['Vibration Level (Hz)'],
             "battery_voltage": data['Battery Voltage (V)'],
-            "mileage": data['Mileage (km)'],
+            "brake_wear": data['Brake Pad Wear (%)'],
             "fuel_efficiency": data['Fuel Efficiency (km/l)']
         }
         
@@ -253,7 +253,7 @@ def history():
         record['Oil Pressure (bar)'] = record.pop('oil_pressure')
         record['Vibration Level (Hz)'] = record.pop('vibration')
         record['Battery Voltage (V)'] = record.pop('battery_voltage')
-        record['Mileage (km)'] = record.pop('mileage')
+        record['Brake Pad Wear (%)'] = record.pop('brake_wear')
         record['Fuel Efficiency (km/l)'] = record.pop('fuel_efficiency')
 
     return render_template('history.html', user=user, history_data=history_data)
